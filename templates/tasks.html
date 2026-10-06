@@ -1,0 +1,310 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Tasks</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            margin-right: 8px;
+        }
+
+        .top-buttons {
+            margin-bottom: 20px;
+        }
+
+        .filter-box {
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .filter-box input,
+        .filter-box select {
+            padding: 8px;
+            margin-right: 8px;
+        }
+
+        .filter-box button {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+
+        .add-button {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #333;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .clear-button {
+            padding: 8px 15px;
+            text-decoration: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        button {
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>All Tasks</h1>
+
+    <div class="top-buttons">
+
+        <a href="/tasks/add" class="add-button">
+            ➕ Add Task
+        </a>
+
+        <a href="/">
+            🏠 Dashboard
+        </a>
+
+    </div>
+
+
+    <!-- SEARCH AND FILTERS -->
+
+    <div class="filter-box">
+
+        <form method="GET" action="/tasks">
+
+            <!-- Search -->
+
+            <input
+                type="text"
+                name="search"
+                placeholder="Search task title..."
+                value="{{ search }}"
+            >
+
+
+            <!-- Category -->
+
+            <select name="category">
+
+                <option value="">All Categories</option>
+
+                <option value="Work"
+                    {% if category == "Work" %}selected{% endif %}>
+                    Work
+                </option>
+
+                <option value="Study"
+                    {% if category == "Study" %}selected{% endif %}>
+                    Study
+                </option>
+
+                <option value="Personal"
+                    {% if category == "Personal" %}selected{% endif %}>
+                    Personal
+                </option>
+
+                <option value="Fitness"
+                    {% if category == "Fitness" %}selected{% endif %}>
+                    Fitness
+                </option>
+
+            </select>
+
+
+            <!-- Priority -->
+
+            <select name="priority">
+
+                <option value="">All Priorities</option>
+
+                <option value="High"
+                    {% if priority == "High" %}selected{% endif %}>
+                    High
+                </option>
+
+                <option value="Medium"
+                    {% if priority == "Medium" %}selected{% endif %}>
+                    Medium
+                </option>
+
+                <option value="Low"
+                    {% if priority == "Low" %}selected{% endif %}>
+                    Low
+                </option>
+
+            </select>
+
+
+            <!-- Status -->
+
+            <select name="status">
+
+                <option value="">All Status</option>
+
+                <option value="Pending"
+                    {% if status == "Pending" %}selected{% endif %}>
+                    Pending
+                </option>
+
+                <option value="In Progress"
+                    {% if status == "In Progress" %}selected{% endif %}>
+                    In Progress
+                </option>
+
+                <option value="Completed"
+                    {% if status == "Completed" %}selected{% endif %}>
+                    Completed
+                </option>
+
+            </select>
+
+
+            <button type="submit">
+                🔎 Search
+            </button>
+
+
+            <a href="/tasks" class="clear-button">
+                🔄 Clear
+            </a>
+
+        </form>
+
+    </div>
+
+
+    <!-- TASK TABLE -->
+
+    {% if tasks %}
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+            {% for task in tasks %}
+
+            <tr>
+
+                <td>
+                    {{ task["id"] }}
+                </td>
+
+                <td>
+                    {{ task["title"] }}
+                </td>
+
+                <td>
+                    {{ task["category"] }}
+                </td>
+
+                <td>
+                    {{ task["priority"] }}
+                </td>
+
+                <td>
+                    {{ task["due_date"] }}
+                </td>
+
+                <td>
+                    {{ task["status"] }}
+                </td>
+
+                <td>
+
+                    <a href="/tasks/edit/{{ task['id'] }}">
+                        ✏️ Edit
+                    </a>
+
+
+                    <form
+                        method="POST"
+                        action="/tasks/delete/{{ task['id'] }}"
+                        style="display:inline;"
+                        onsubmit="return confirm('Are you sure you want to delete this task?');"
+                    >
+
+                        <button type="submit">
+                            🗑️ Delete
+                        </button>
+
+                    </form>
+
+
+                    {% if task["status"] != "Completed" %}
+
+                    <form
+                        method="POST"
+                        action="/tasks/complete/{{ task['id'] }}"
+                        style="display:inline;"
+                    >
+
+                        <button type="submit">
+                            ✅ Complete
+                        </button>
+
+                    </form>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    {% else %}
+
+    <p>No tasks found.</p>
+
+    {% endif %}
+
+</body>
+</html>
+```

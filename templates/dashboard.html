@@ -1,0 +1,446 @@
+```html
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>Task Manager Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .buttons {
+            margin-bottom: 25px;
+        }
+
+        .buttons a {
+            text-decoration: none;
+            padding: 10px 15px;
+            margin-right: 10px;
+            background-color: #333;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            margin: 5px 0;
+            font-size: 30px;
+        }
+
+        .card p {
+            margin: 0;
+            color: #666;
+        }
+
+        .percentage {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .percentage h2 {
+            font-size: 36px;
+            margin: 10px;
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .chart-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            height: 350px;
+        }
+
+        .chart-box h2 {
+            text-align: center;
+        }
+
+        .recent-tasks {
+            margin-top: 25px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        @media (max-width: 800px) {
+
+            .cards {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .charts {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <h1>📋 Personalized Task Manager</h1>
+
+
+    <!-- BUTTONS -->
+
+    <div class="buttons">
+
+        <a href="/tasks/add">
+            ➕ Add Task
+        </a>
+
+        <a href="/tasks">
+            📋 View All Tasks
+        </a>
+
+    </div>
+
+
+    <!-- SUMMARY CARDS -->
+
+    <div class="cards">
+
+        <div class="card">
+            <p>Total Tasks</p>
+            <h2>{{ total_tasks }}</h2>
+        </div>
+
+
+        <div class="card">
+            <p>Pending</p>
+            <h2>{{ pending_tasks }}</h2>
+        </div>
+
+
+        <div class="card">
+            <p>In Progress</p>
+            <h2>{{ in_progress_tasks }}</h2>
+        </div>
+
+
+        <div class="card">
+            <p>Completed</p>
+            <h2>{{ completed_tasks }}</h2>
+        </div>
+
+    </div>
+
+
+    <!-- COMPLETION PERCENTAGE -->
+
+    <div class="percentage">
+
+        <p>Task Completion Rate</p>
+
+        <h2>
+            {{ completion_percentage }}%
+        </h2>
+
+    </div>
+
+
+    <!-- CHARTS -->
+
+    <div class="charts">
+
+
+        <!-- STATUS CHART -->
+
+        <div class="chart-box">
+
+            <h2>Task Status</h2>
+
+            <canvas id="statusChart"></canvas>
+
+        </div>
+
+
+        <!-- PRIORITY CHART -->
+
+        <div class="chart-box">
+
+            <h2>Task Priority</h2>
+
+            <canvas id="priorityChart"></canvas>
+
+        </div>
+
+
+        <!-- CATEGORY CHART -->
+
+        <div class="chart-box">
+
+            <h2>Task Categories</h2>
+
+            <canvas id="categoryChart"></canvas>
+
+        </div>
+
+
+        <!-- COMPLETION CHART -->
+
+        <div class="chart-box">
+
+            <h2>Completion Overview</h2>
+
+            <canvas id="completionChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <!-- RECENT TASKS -->
+
+    <div class="recent-tasks">
+
+        <h2>Recent Tasks</h2>
+
+        {% if tasks %}
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for task in tasks[:5] %}
+
+                <tr>
+
+                    <td>
+                        {{ task["title"] }}
+                    </td>
+
+                    <td>
+                        {{ task["category"] }}
+                    </td>
+
+                    <td>
+                        {{ task["priority"] }}
+                    </td>
+
+                    <td>
+                        {{ task["status"] }}
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% else %}
+
+        <p>No tasks available.</p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- CHART.JS -->
+
+    <script>
+
+        // Task Status Chart
+
+        const statusChart = new Chart(
+            document.getElementById("statusChart"),
+            {
+                type: "doughnut",
+
+                data: {
+
+                    labels: [
+                        "Pending",
+                        "In Progress",
+                        "Completed"
+                    ],
+
+                    datasets: [{
+                        data: [
+                            {{ pending_tasks }},
+                            {{ in_progress_tasks }},
+                            {{ completed_tasks }}
+                        ]
+                    }]
+
+                }
+
+            }
+        );
+
+
+        // Priority Chart
+
+        const priorityChart = new Chart(
+            document.getElementById("priorityChart"),
+            {
+                type: "bar",
+
+                data: {
+
+                    labels: [
+                        "High",
+                        "Medium",
+                        "Low"
+                    ],
+
+                    datasets: [{
+                        label: "Tasks",
+
+                        data: [
+                            {{ high_priority }},
+                            {{ medium_priority }},
+                            {{ low_priority }}
+                        ]
+                    }]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+
+                }
+
+            }
+        );
+
+
+        // Category Chart
+
+        const categoryChart = new Chart(
+            document.getElementById("categoryChart"),
+            {
+                type: "pie",
+
+                data: {
+
+                    labels: [
+                        "Work",
+                        "Study",
+                        "Personal",
+                        "Fitness"
+                    ],
+
+                    datasets: [{
+
+                        data: [
+                            {{ work_tasks }},
+                            {{ study_tasks }},
+                            {{ personal_tasks }},
+                            {{ fitness_tasks }}
+                        ]
+
+                    }]
+
+                }
+
+            }
+        );
+
+
+        // Completion Chart
+
+        const completionChart = new Chart(
+            document.getElementById("completionChart"),
+            {
+                type: "doughnut",
+
+                data: {
+
+                    labels: [
+                        "Completed",
+                        "Remaining"
+                    ],
+
+                    datasets: [{
+
+                        data: [
+                            {{ completed_tasks }},
+                            {{ total_tasks - completed_tasks }}
+                        ]
+
+                    }]
+
+                }
+
+            }
+        );
+
+    </script>
+
+
+</body>
+</html>
+```
